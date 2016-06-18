@@ -1,3 +1,6 @@
+use std::fs::File;
+
+
 enum Mnemonic {
     Add, Call, Cls, Drw,
     Jp, Ld, Or, Ret,
@@ -23,14 +26,20 @@ enum Token {
 }
 
 struct Stream {
+    input: File,
 }
 
 impl Stream {
+    fn new(input: File) -> Stream {
+        Stream {
+            input: input,
+        }
+    }
+
     fn next_token(&mut self) -> Option<Token> {
         None
     }
 }
 
 fn main() {
-    println!("Hello, world!");
 }
