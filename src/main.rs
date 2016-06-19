@@ -73,7 +73,7 @@ impl Stream {
                 // base 10
                 0 => Some(Token::ImmConst(token_str.parse::<u16>().unwrap())),
                 // base 16
-                1 => Some(Token::ImmConst(u16::from_str_radix(&token_str, 16).unwrap())),
+                1 => Some(Token::ImmConst(u16::from_str_radix(&token_str[2..], 16).unwrap())),
                 _ => None,
             }
 
