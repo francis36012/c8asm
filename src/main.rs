@@ -68,6 +68,34 @@ impl Stream {
             return Some(Token::ImmConst(token_str.parse::<u16>().unwrap()));
         }
 
+        if Stream::is_register(&token_str) {
+            return match token_str.as_str() {
+                "v0"   => Some(Token::Reg(Register::V0)),
+                "v1"   => Some(Token::Reg(Register::V1)),
+                "v2"   => Some(Token::Reg(Register::V2)),
+                "v3"   => Some(Token::Reg(Register::V3)),
+                "v4"   => Some(Token::Reg(Register::V4)),
+                "v5"   => Some(Token::Reg(Register::V5)),
+                "v6"   => Some(Token::Reg(Register::V6)),
+                "v7"   => Some(Token::Reg(Register::V7)),
+                "v8"   => Some(Token::Reg(Register::V8)),
+                "v9"   => Some(Token::Reg(Register::V9)),
+                "va"   => Some(Token::Reg(Register::Va)),
+                "vb"   => Some(Token::Reg(Register::Vb)),
+                "vc"   => Some(Token::Reg(Register::Vc)),
+                "vd"   => Some(Token::Reg(Register::Vd)),
+                "ve"   => Some(Token::Reg(Register::Ve)),
+                "vf"   => Some(Token::Reg(Register::Vf)),
+                "sp"   => Some(Token::Reg(Register::Sp)),
+                "st"   => Some(Token::Reg(Register::St)),
+                "dt"   => Some(Token::Reg(Register::Dt)),
+                "pc"   => Some(Token::Reg(Register::Pc)),
+                "i"    => Some(Token::Reg(Register::I)),
+                "[i]"  => Some(Token::Reg(Register::IVal)),
+                _      => None
+            }
+        }
+
         match token_str.as_str() {
             "add"   => Some(Token::Opcode(Mnemonic::Add)),
             "call"  => Some(Token::Opcode(Mnemonic::Call)),
@@ -97,6 +125,17 @@ impl Stream {
             ','|' '|'\n' => { true }
             _ => { false }
         }
+    }
+
+    fn is_register(input: &str) -> bool {
+        input == "v0" || input == "v1" || input == "v2" ||
+        input == "v3" || input == "v4" || input == "v5" ||
+        input == "v6" || input == "v7" || input == "v8" ||
+        input == "v9" || input == "va" || input == "vb" ||
+        input == "vc" || input == "vd" || input == "ve" ||
+        input == "vf" || input == "sp" || input == "st" ||
+        input == "dt" || input == "pc" || input == "i" ||
+        input == "[i]"
     }
 
     fn is_numeric(input: &str) -> bool {
