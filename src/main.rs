@@ -67,8 +67,16 @@ impl Stream {
             "".to_owned()
         }).to_lowercase();
 
-        if Stream::is_numeric(&token_str) {
-            return Some(Token::ImmConst(token_str.parse::<u16>().unwrap()));
+        let (numeric, radix) = Stream::is_numeric(&token_str);
+        if numeric {
+            return match radix {
+                // base 10
+                0 => Some(Token::ImmConst(token_str.parse::<u16>().unwrap())),
+                // base 16
+                1 => Some(Token::ImmConst(u16::from_str_radix(&token_str, 16).unwrap())),
+                _ => None,
+            }
+
         }
 
         if Stream::is_register(&token_str) {
@@ -141,33 +149,38 @@ impl Stream {
         input == "[i]"
     }
 
-    fn is_numeric(input: &str) -> bool {
+    // Returns a tuple of boolean and integer
+    // The input is numeric if the boolean component of the result is true
+    // Integer component of result:
+    //   0 => base 10
+    //   1 => base 16
+    fn is_numeric(input: &str) -> (bool, u8) {
         if input.len() < 1 {
-            return false;
+            return (false, std::u8::MAX);
         }
 
         let in_bytes = input.as_bytes();
         if !Stream::is_ascii_numeric(in_bytes[0]) {
-            return false;
+            return (false, std::u8::MAX);
         }
 
         // hex
         if input.starts_with("0x") {
             for i in 2..(in_bytes.len()) {
                 if !Stream::is_ascii_hex(in_bytes[i]) {
-                    return false
+                    return (false, std::u8::MAX);
                 }
-                return true
+                return (true, 1);
             }
         } else {
             for b in in_bytes {
                 if !Stream::is_ascii_numeric(*b) {
-                    return false
+                    return (false, std::u8::MAX);
                 }
-                return true
+                return (true, 0);
             }
         }
-        false
+        return (false, std::u8::MAX);
     }
 
     fn is_ascii_numeric(input: u8) -> bool {
