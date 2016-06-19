@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Bytes;
 
 
+#[derive(Debug)]
 enum Mnemonic {
     Add, Call, Cls, Drw,
     Jp, Ld, Or, Ret,
@@ -10,6 +11,7 @@ enum Mnemonic {
     Subn, Sys, Xor,
 }
 
+#[derive(Debug)]
 enum Register {
     V0, V1, V2, V3,
     V4, V5, V6, V7,
@@ -18,6 +20,7 @@ enum Register {
     Sp, Pc, I, St, Dt, IVal,
 }
 
+#[derive(Debug)]
 enum Token {
     Opcode(Mnemonic),
     Reg(Register),
