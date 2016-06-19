@@ -50,9 +50,12 @@ impl Stream {
             match bs {
                 Some(b) => {
                     if Stream::is_separator(b) {
-                        return Stream::create_token(buffer);
+                        if buffer.len() > 0 {
+                            return Stream::create_token(buffer);
+                        }
+                    } else {
+                        buffer.push(b);
                     }
-                    buffer.push(b);
                 },
                 None => {
                     return Stream::create_token(buffer);
@@ -133,7 +136,7 @@ impl Stream {
 
     fn is_separator(b: u8) -> bool {
         match b as char {
-            ','|' '|'\n' => { true }
+            ','|' '|'\n' | '\t' => { true }
             _ => { false }
         }
     }
