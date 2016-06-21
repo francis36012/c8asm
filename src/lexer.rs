@@ -22,9 +22,9 @@ pub enum Register {
 
 #[derive(Debug)]
 pub enum Token {
-    Opcode(Mnemonic),
-    Reg(Register),
-    ImmConst(u16),
+    Opcode(Mnemonic, u32),
+    Reg(Register, u32),
+    ImmConst(u16, u32),
 }
 
 pub struct Stream {
@@ -52,18 +52,18 @@ impl Stream {
             match bs {
                 Some(b) => {
                     if Stream::is_separator(b) {
+                        if buffer.len() > 0 {
+                            return Stream::create_token(buffer, self.line);
+                        }
                         if (b as char) == '\n' {
                             self.line += 1;
-                        }
-                        if buffer.len() > 0 {
-                            return Stream::create_token(buffer);
                         }
                     } else {
                         buffer.push(b);
                     }
                 },
                 None => {
-                    return Stream::create_token(buffer);
+                    return Stream::create_token(buffer, self.line);
                 }
             }
         }
@@ -73,7 +73,7 @@ impl Stream {
         self.line
     }
 
-    fn create_token(input: Vec<u8>) -> Option<Token> {
+    fn create_token(input: Vec<u8>, line: u32) -> Option<Token> {
         let token_str: String = String::from_utf8(input).unwrap_or_else(|err| {
             println!("Error: {:?}", err);
             "".to_owned()
@@ -83,9 +83,9 @@ impl Stream {
         if numeric {
             return match radix {
                 // base 10
-                0 => Some(Token::ImmConst(token_str.parse::<u16>().unwrap())),
+                0 => Some(Token::ImmConst(token_str.parse::<u16>().unwrap(), line)),
                 // base 16
-                1 => Some(Token::ImmConst(u16::from_str_radix(&token_str[2..], 16).unwrap())),
+                1 => Some(Token::ImmConst(u16::from_str_radix(&token_str[2..], 16).unwrap(), line)),
                 _ => None,
             }
 
@@ -93,52 +93,52 @@ impl Stream {
 
         if Stream::is_register(&token_str) {
             return match token_str.as_str() {
-                "v0"   => Some(Token::Reg(Register::V0)),
-                "v1"   => Some(Token::Reg(Register::V1)),
-                "v2"   => Some(Token::Reg(Register::V2)),
-                "v3"   => Some(Token::Reg(Register::V3)),
-                "v4"   => Some(Token::Reg(Register::V4)),
-                "v5"   => Some(Token::Reg(Register::V5)),
-                "v6"   => Some(Token::Reg(Register::V6)),
-                "v7"   => Some(Token::Reg(Register::V7)),
-                "v8"   => Some(Token::Reg(Register::V8)),
-                "v9"   => Some(Token::Reg(Register::V9)),
-                "va"   => Some(Token::Reg(Register::Va)),
-                "vb"   => Some(Token::Reg(Register::Vb)),
-                "vc"   => Some(Token::Reg(Register::Vc)),
-                "vd"   => Some(Token::Reg(Register::Vd)),
-                "ve"   => Some(Token::Reg(Register::Ve)),
-                "vf"   => Some(Token::Reg(Register::Vf)),
-                "sp"   => Some(Token::Reg(Register::Sp)),
-                "st"   => Some(Token::Reg(Register::St)),
-                "dt"   => Some(Token::Reg(Register::Dt)),
-                "pc"   => Some(Token::Reg(Register::Pc)),
-                "i"    => Some(Token::Reg(Register::I)),
-                "[i]"  => Some(Token::Reg(Register::IVal)),
+                "v0"   => Some(Token::Reg(Register::V0, line)),
+                "v1"   => Some(Token::Reg(Register::V1, line)),
+                "v2"   => Some(Token::Reg(Register::V2, line)),
+                "v3"   => Some(Token::Reg(Register::V3, line)),
+                "v4"   => Some(Token::Reg(Register::V4, line)),
+                "v5"   => Some(Token::Reg(Register::V5, line)),
+                "v6"   => Some(Token::Reg(Register::V6, line)),
+                "v7"   => Some(Token::Reg(Register::V7, line)),
+                "v8"   => Some(Token::Reg(Register::V8, line)),
+                "v9"   => Some(Token::Reg(Register::V9, line)),
+                "va"   => Some(Token::Reg(Register::Va, line)),
+                "vb"   => Some(Token::Reg(Register::Vb, line)),
+                "vc"   => Some(Token::Reg(Register::Vc, line)),
+                "vd"   => Some(Token::Reg(Register::Vd, line)),
+                "ve"   => Some(Token::Reg(Register::Ve, line)),
+                "vf"   => Some(Token::Reg(Register::Vf, line)),
+                "sp"   => Some(Token::Reg(Register::Sp, line)),
+                "st"   => Some(Token::Reg(Register::St, line)),
+                "dt"   => Some(Token::Reg(Register::Dt, line)),
+                "pc"   => Some(Token::Reg(Register::Pc, line)),
+                "i"    => Some(Token::Reg(Register::I, line)),
+                "[i]"  => Some(Token::Reg(Register::IVal, line)),
                 _      => None
             }
         }
 
         match token_str.as_str() {
-            "add"   => Some(Token::Opcode(Mnemonic::Add)),
-            "call"  => Some(Token::Opcode(Mnemonic::Call)),
-            "cls"   => Some(Token::Opcode(Mnemonic::Cls)),
-            "drw"   => Some(Token::Opcode(Mnemonic::Drw)),
-            "jp"    => Some(Token::Opcode(Mnemonic::Jp)),
-            "ld"    => Some(Token::Opcode(Mnemonic::Ld)),
-            "or"    => Some(Token::Opcode(Mnemonic::Or)),
-            "ret"   => Some(Token::Opcode(Mnemonic::Ret)),
-            "rnd"   => Some(Token::Opcode(Mnemonic::Rnd)),
-            "se"    => Some(Token::Opcode(Mnemonic::Se)),
-            "shl"   => Some(Token::Opcode(Mnemonic::Shl)),
-            "shr"   => Some(Token::Opcode(Mnemonic::Shr)),
-            "sknp"  => Some(Token::Opcode(Mnemonic::Sknp)),
-            "skp"   => Some(Token::Opcode(Mnemonic::Skp)),
-            "sne"   => Some(Token::Opcode(Mnemonic::Sne)),
-            "sub"   => Some(Token::Opcode(Mnemonic::Sub)),
-            "subn"  => Some(Token::Opcode(Mnemonic::Subn)),
-            "sys"   => Some(Token::Opcode(Mnemonic::Sys)),
-            "xor"   => Some(Token::Opcode(Mnemonic::Xor)),
+            "add"   => Some(Token::Opcode(Mnemonic::Add, line)),
+            "call"  => Some(Token::Opcode(Mnemonic::Call, line)),
+            "cls"   => Some(Token::Opcode(Mnemonic::Cls, line)),
+            "drw"   => Some(Token::Opcode(Mnemonic::Drw, line)),
+            "jp"    => Some(Token::Opcode(Mnemonic::Jp, line)),
+            "ld"    => Some(Token::Opcode(Mnemonic::Ld, line)),
+            "or"    => Some(Token::Opcode(Mnemonic::Or, line)),
+            "ret"   => Some(Token::Opcode(Mnemonic::Ret, line)),
+            "rnd"   => Some(Token::Opcode(Mnemonic::Rnd, line)),
+            "se"    => Some(Token::Opcode(Mnemonic::Se, line)),
+            "shl"   => Some(Token::Opcode(Mnemonic::Shl, line)),
+            "shr"   => Some(Token::Opcode(Mnemonic::Shr, line)),
+            "sknp"  => Some(Token::Opcode(Mnemonic::Sknp, line)),
+            "skp"   => Some(Token::Opcode(Mnemonic::Skp, line)),
+            "sne"   => Some(Token::Opcode(Mnemonic::Sne, line)),
+            "sub"   => Some(Token::Opcode(Mnemonic::Sub, line)),
+            "subn"  => Some(Token::Opcode(Mnemonic::Subn, line)),
+            "sys"   => Some(Token::Opcode(Mnemonic::Sys, line)),
+            "xor"   => Some(Token::Opcode(Mnemonic::Xor, line)),
             _       => None
         }
     }
