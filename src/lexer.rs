@@ -29,12 +29,14 @@ pub enum Token {
 
 pub struct Stream {
     input: Bytes<File>,
+    line: u32,
 }
 
 impl Stream {
     pub fn new(input: Bytes<File>) -> Stream {
         Stream {
             input: input,
+            line: 1,
         }
     }
 
@@ -50,6 +52,9 @@ impl Stream {
             match bs {
                 Some(b) => {
                     if Stream::is_separator(b) {
+                        if (b as char) == '\n' {
+                            self.line += 1;
+                        }
                         if buffer.len() > 0 {
                             return Stream::create_token(buffer);
                         }
@@ -62,6 +67,10 @@ impl Stream {
                 }
             }
         }
+    }
+
+    pub fn line(&self) -> u32 {
+        self.line
     }
 
     fn create_token(input: Vec<u8>) -> Option<Token> {
