@@ -203,3 +203,25 @@ impl Stream {
         (input >= 48 && input <= 57) || ((input >= 97 && input <= 102) || (input >= 65 && input <= 70))
     }
 }
+
+pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u8>, u8> {
+    let mut result: Vec<u8> = vec![];
+
+    let mut curr_opcode: Option<&Mnemonic> = None;
+
+    for token in tokens {
+        match token {
+            &Token::Reg(ref r, l) => {
+                println!("{:?}: {}", r, l);
+            },
+            &Token::Opcode(ref o, l) => {
+                curr_opcode = Some(o);
+                println!("{:?}: {}", o, l);
+            },
+            &Token::ImmConst(ref c, l) => {
+                println!("{}: {}", c, l);
+            }
+        }
+    }
+    Ok(result)
+}
