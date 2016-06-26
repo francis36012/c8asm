@@ -130,9 +130,6 @@ impl Stream {
                 "dt"   => Some(Token::Dt(line)),
                 "i"    => Some(Token::I(line)),
                 "[i]"  => Some(Token::IVal(line)),
-                "f"    => Some(Token::F(line)),
-                "b"    => Some(Token::B(line)),
-                "k"    => Some(Token::K(line)),
                 _      => None
             }
         }
@@ -158,6 +155,9 @@ impl Stream {
             "subn"  => Some(Token::Opcode(Mnemonic::Subn, line)),
             "sys"   => Some(Token::Opcode(Mnemonic::Sys, line)),
             "xor"   => Some(Token::Opcode(Mnemonic::Xor, line)),
+            "f"     => Some(Token::F(line)),
+            "b"     => Some(Token::B(line)),
+            "k"     => Some(Token::K(line)),
             _       => None
         }
     }
