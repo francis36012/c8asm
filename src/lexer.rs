@@ -70,7 +70,11 @@ impl Stream {
                 Some(b) => {
                     if Stream::is_separator(b) {
                         if buffer.len() > 0 {
-                            return Stream::create_token(buffer, self.line);
+                            let tt = Stream::create_token(buffer, self.line);
+                            if (b as char) == '\n' {
+                                self.line += 1;
+                            }
+                            return tt;
                         }
                         if (b as char) == '\n' {
                             self.line += 1;
