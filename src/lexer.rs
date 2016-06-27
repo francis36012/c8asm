@@ -236,10 +236,8 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
     #[derive(Copy, Clone)]
     enum TokenRef<'a> {
         Reg(&'a Register, u32),
-        ImmConst(&'a u16, u32),
-        F(u32), B(u32), K(u32),
-        I(u32), St(u32), Dt(u32),
-        IVal(u32),
+        F(u32), B(u32), I(u32),
+        St(u32), Dt(u32), IVal(u32),
     }
 
     for token in tokens {
@@ -499,31 +497,114 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) => {
                         match last_token {
-                            Some(TokenRef::Reg(ref or, ol)) => {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x6u16 << 12) | ((or.number() as u16) << 8) | (nc & 0x00ff));
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
-                            Some(TokenRef::I(ol)) => {
+                            Some(TokenRef::I(_)) => {
+                                result.push((0xau16 << 12) | (nc & 0x0fff));
                                 temp_last_token = None;
-                            }
+                                curr_opcode = None;
+                            },
                             _ => {
                                 return Err(nl);
                             }
                         }
                     },
                     Some(&Mnemonic::Se) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x3u16 << 12) | ((or.number() as u16) << 8) | (nc & 0x00ff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Sne) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x4u16 << 12) | ((or.number() as u16) << 8) | (nc & 0x00ff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            None => {
+                                result.push((0x1u16 << 12) | (nc & 0x0fff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Add) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x7u16 << 12) | ((or.number() as u16) << 8) | (nc & 0x00ff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Rnd) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0xcu16 << 12) | ((or.number() as u16) << 8) | (nc & 0x00ff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Drw) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                if draw_first_reg.is_none() {
+                                    return Err(nl);
+                                }
+                                let x = draw_first_reg.unwrap().0.number();
+                                let y = or.number();
+                                result.push((0xdu16 << 12) | (((x & 0x0f) as u16) << 8) | (((y & 0x0f) as u16) << 4) | (nc & 0x000f));
+                                temp_last_token = None;
+                                draw_first_reg = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Jp) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                if or.number() != 0 {
+                                    return Err(nl);
+                                }
+                                result.push((0xbu16 << 12) | (nc & 0x0fff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
                     },
                     Some(&Mnemonic::Call) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        result.push((0x2u16 << 12) | (nc & 0x0fff));
+                        temp_last_token = None;
+                        curr_opcode = None;
                     },
                     _ => {
                         return Err(nl);
@@ -531,26 +612,118 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 }
                 last_token = temp_last_token;
             },
-            &Token::K(l) => {
-                last_token = Some(TokenRef::K(l));
+            &Token::K(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0xfu16 << 12) | (((or.number() as u16) & 0x000f) << 8) | 0x0a);
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::F(l) => {
-                last_token = Some(TokenRef::F(l));
+            &Token::F(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        temp_last_token = Some(TokenRef::F(nl));
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::B(l) => {
-                last_token = Some(TokenRef::B(l));
+            &Token::B(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        temp_last_token = Some(TokenRef::B(nl));
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::I(l) => {
-                last_token = Some(TokenRef::I(l));
+            &Token::I(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) | Some(&Mnemonic::Add) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        temp_last_token = Some(TokenRef::I(nl));
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::IVal(l) => {
-                last_token = Some(TokenRef::IVal(l));
+            &Token::IVal(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0xfu16 << 12) | (((or.number() as u16) & 0x000f) << 8) | 0x65);
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            None => {
+                                temp_last_token = Some(TokenRef::IVal(nl));
+                            },
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::St(l) => {
-                last_token = Some(TokenRef::St(l));
+            &Token::St(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        temp_last_token = Some(TokenRef::St(nl));
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
-            &Token::Dt(l) => {
-                last_token = Some(TokenRef::Dt(l));
+            &Token::Dt(nl) => {
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        temp_last_token = Some(TokenRef::Dt(nl));
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
         }
     }
