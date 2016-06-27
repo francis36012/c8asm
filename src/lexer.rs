@@ -496,7 +496,40 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 }
             },
             &Token::ImmConst(ref nc, nl) => {
-                last_token = Some(TokenRef::ImmConst(nc, nl));
+                match curr_opcode {
+                    Some(&Mnemonic::Ld) => {
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, ol)) => {
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            Some(TokenRef::I(ol)) => {
+                                temp_last_token = None;
+                            }
+                            _ => {
+                                return Err(nl);
+                            }
+                        }
+                    },
+                    Some(&Mnemonic::Se) => {
+                    },
+                    Some(&Mnemonic::Sne) => {
+                    },
+                    Some(&Mnemonic::Add) => {
+                    },
+                    Some(&Mnemonic::Rnd) => {
+                    },
+                    Some(&Mnemonic::Drw) => {
+                    },
+                    Some(&Mnemonic::Jp) => {
+                    },
+                    Some(&Mnemonic::Call) => {
+                    },
+                    _ => {
+                        return Err(nl);
+                    }
+                }
+                last_token = temp_last_token;
             },
             &Token::K(l) => {
                 last_token = Some(TokenRef::K(l));
