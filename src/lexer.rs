@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::Bytes;
 
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum Mnemonic {
     Add, And, Call, Cls,
     Drw, Jp, Ld, Or,
@@ -226,7 +226,7 @@ impl Stream {
     }
 }
 
-pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
+pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
     let mut result: Vec<u16> = vec![];
 
     let mut curr_opcode: Option<&Mnemonic> = None;
@@ -279,7 +279,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -292,7 +292,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -305,7 +305,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -317,7 +317,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -329,7 +329,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -342,7 +342,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -355,7 +355,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -368,7 +368,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -376,7 +376,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         match last_token {
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -389,7 +389,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -402,7 +402,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)) },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -415,13 +415,13 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)); },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
                     Some(&Mnemonic::Shr) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::Reg(nr.clone(), nl));
                         }
                         result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x06);
                         curr_opcode = None;
@@ -429,7 +429,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                     },
                     Some(&Mnemonic::Shl) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::Reg(nr.clone(), nl));
                         }
                         result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x0e);
                         curr_opcode = None;
@@ -443,7 +443,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -456,7 +456,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)); },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -467,7 +467,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 temp_last_token = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
@@ -475,23 +475,23 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         match last_token {
                             None => {
                                 if nr.number() != 0 {
-                                    return Err(nl);
+                                    return Err(Token::Reg(nr.clone(), nl));
                                 }
                                 temp_last_token = Some(TokenRef::Reg(nr, nl));
                             }
                             _ => {
-                                return Err(nl);
+                                return Err(Token::Reg(nr.clone(), nl));
                             }
                         }
                     },
                     Some(&Mnemonic::Call) => {
-                        return Err(nl);
+                        return Err(Token::Reg(nr.clone(), nl));
                     },
                     Some(&Mnemonic::Sys) => {
-                        return Err(nl);
+                        return Err(Token::Reg(nr.clone(), nl));
                     },
                     None => {
-                        return Err(nl);
+                        return Err(Token::Reg(nr.clone(), nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -502,7 +502,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         curr_opcode = Some(no);
                     },
                     _ => {
-                        return Err(nl)
+                        return Err(Token::Opcode(no.clone(), nl));
                     }
                 }
             },
@@ -521,7 +521,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -533,7 +533,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -545,7 +545,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -557,7 +557,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -569,7 +569,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -577,7 +577,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         match last_token {
                             Some(TokenRef::Reg(ref or, _)) => {
                                 if draw_first_reg.is_none() {
-                                    return Err(nl);
+                                    return Err(Token::ImmConst(*nc, nl));
                                 }
                                 let x = draw_first_reg.unwrap().0.number();
                                 let y = or.number();
@@ -587,7 +587,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
@@ -595,7 +595,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         match last_token {
                             Some(TokenRef::Reg(ref or, _)) => {
                                 if or.number() != 0 {
-                                    return Err(nl);
+                                    return Err(Token::ImmConst(*nc, nl));
                                 }
                                 result.push((0xbu16 << 12) | (nc & 0x0fff));
                                 temp_last_token = None;
@@ -607,20 +607,20 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::ImmConst(*nc, nl));
                             }
                         }
                     },
                     Some(&Mnemonic::Call) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::ImmConst(*nc, nl));
                         }
                         result.push((0x2u16 << 12) | (nc & 0x0fff));
                         temp_last_token = None;
                         curr_opcode = None;
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::ImmConst(*nc, nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -635,12 +635,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 curr_opcode = None;
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::K(nl));
                             }
                         }
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::K(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -649,12 +649,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::F(nl));
                         }
                         temp_last_token = Some(TokenRef::F(nl));
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::F(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -663,12 +663,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::B(nl));
                         }
                         temp_last_token = Some(TokenRef::B(nl));
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::B(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -677,12 +677,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) | Some(&Mnemonic::Add) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::I(nl));
                         }
                         temp_last_token = Some(TokenRef::I(nl));
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::I(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -700,12 +700,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 temp_last_token = Some(TokenRef::IVal(nl));
                             },
                             _ => {
-                                return Err(nl);
+                                return Err(Token::IVal(nl));
                             }
                         }
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::IVal(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -714,12 +714,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::St(nl));
                         }
                         temp_last_token = Some(TokenRef::St(nl));
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::St(nl));
                     }
                 }
                 last_token = temp_last_token;
@@ -728,12 +728,12 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                 match curr_opcode {
                     Some(&Mnemonic::Ld) => {
                         if last_token.is_some() {
-                            return Err(nl);
+                            return Err(Token::Dt(nl));
                         }
                         temp_last_token = Some(TokenRef::Dt(nl));
                     },
                     _ => {
-                        return Err(nl);
+                        return Err(Token::Dt(nl));
                     }
                 }
                 last_token = temp_last_token;
