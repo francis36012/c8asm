@@ -233,7 +233,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
     let mut last_token: Option<TokenRef> = None;
     let mut draw_first_reg: Option<(&Register, u32)> = None;
 
-    #[derive(Copy, Clone)]
+    #[derive(Debug, Copy, Clone)]
     enum TokenRef<'a> {
         Reg(&'a Register, u32),
         F(u32), B(u32), I(u32),
@@ -452,7 +452,6 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
                             Some(TokenRef::Reg(ref or, ol)) => {
                                 draw_first_reg = Some((or, ol));
                                 temp_last_token = Some(TokenRef::Reg(nr, nl));
-                                curr_opcode = None;
                             },
                             None => { temp_last_token = Some(TokenRef::Reg(nr, nl)); },
                             _ => {
