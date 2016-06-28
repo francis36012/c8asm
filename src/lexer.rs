@@ -241,7 +241,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
     }
 
     for token in tokens {
-        let mut temp_last_token: Option<TokenRef> = last_token.clone();
+        let temp_last_token: Option<TokenRef>;
         match token {
             &Token::Reg(ref nr, nl) => {
                 match curr_opcode {
@@ -420,14 +420,27 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                         }
                     },
                     Some(&Mnemonic::Shr) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x06);
+                        curr_opcode = None;
+                        temp_last_token = None;
                     },
                     Some(&Mnemonic::Shl) => {
+                        if last_token.is_some() {
+                            return Err(nl);
+                        }
+                        result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x0e);
+                        curr_opcode = None;
+                        temp_last_token = None;
                     },
                     Some(&Mnemonic::Cls) => {
                         match last_token {
                             None => {
                                 result.push(0u16 | 0xe0);
                                 temp_last_token = None;
+                                curr_opcode = None;
                             },
                             _ => {
                                 return Err(nl);
@@ -531,11 +544,6 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
-                            None => {
-                                result.push((0x1u16 << 12) | (nc & 0x0fff));
-                                temp_last_token = None;
-                                curr_opcode = None;
-                            },
                             _ => {
                                 return Err(nl);
                             }
@@ -590,6 +598,11 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, u32> {
                                     return Err(nl);
                                 }
                                 result.push((0xbu16 << 12) | (nc & 0x0fff));
+                                temp_last_token = None;
+                                curr_opcode = None;
+                            },
+                            None => {
+                                result.push((0x1u16 << 12) | (nc & 0x0fff));
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
