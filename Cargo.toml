@@ -5,3 +5,4 @@ authors = ["Francis Agayapong <francisagyapong2@gmail.com>"]
 description = "A Chip-8 assembler"
 
 [dependencies]
+clap = "2.*"
