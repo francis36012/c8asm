@@ -9,3 +9,6 @@ cargo build --release
 ```
 
 ## Running
+```shell
+c8asm -i <input-file> -o <output-file>
+```
