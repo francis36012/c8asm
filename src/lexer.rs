@@ -273,7 +273,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
                                 curr_opcode = None;
                             },
                             Some(TokenRef::IVal(_)) => {
-                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x37);
+                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x55);
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
