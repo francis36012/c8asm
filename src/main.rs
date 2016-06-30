@@ -9,7 +9,7 @@ use std::io::Write;
 
 use clap::{Arg, App};
 
-use c8asm::lexer::Stream;
+use c8asm::parser::Stream;
 
 fn main() {
     let matches = App::new("c8asm")
@@ -47,7 +47,7 @@ fn main() {
         tokens.push(token);
     }
 
-    let code = self::c8asm::lexer::code_gen(&tokens);
+    let code = self::c8asm::parser::code_gen(&tokens);
     match code {
         Ok(c) => {
             let mut output_file = File::create(output_file_path).unwrap();
