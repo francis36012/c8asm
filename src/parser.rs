@@ -253,22 +253,22 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
                                 curr_opcode = None;
                             },
                             Some(TokenRef::B(_)) => {
-                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x21);
+                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x33);
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
                             Some(TokenRef::F(_)) => {
-                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x1d);
+                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x29);
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
                             Some(TokenRef::Dt(_)) => {
-                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x0f);
+                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x15);
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
                             Some(TokenRef::St(_)) => {
-                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x12);
+                                result.push((0xfu16 << 12) | ((nr.number() as u16) << 8) | 0x18);
                                 temp_last_token = None;
                                 curr_opcode = None;
                             },
