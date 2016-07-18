@@ -1,6 +1,6 @@
 [package]
 name = "c8asm"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Francis Agayapong <francisagyapong2@gmail.com>"]
 description = "A Chip-8 assembler"
 
