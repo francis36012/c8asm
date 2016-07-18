@@ -420,20 +420,34 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
                         }
                     },
                     Some(&Mnemonic::Shr) => {
-                        if last_token.is_some() {
-                            return Err(Token::Reg(nr.clone(), nl));
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x8u16 << 12) | ((or.number() as u16) << 8) | ((nr.number() as u16) << 4) | 0x06);
+                                curr_opcode = None;
+                                temp_last_token = None;
+                            },
+                            None => {
+                                temp_last_token = Some(TokenRef::Reg(nr, nl));
+                            },
+                            _ => {
+                                return Err(Token::Reg(nr.clone(), nl));
+                            }
                         }
-                        result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x06);
-                        curr_opcode = None;
-                        temp_last_token = None;
                     },
                     Some(&Mnemonic::Shl) => {
-                        if last_token.is_some() {
-                            return Err(Token::Reg(nr.clone(), nl));
+                        match last_token {
+                            Some(TokenRef::Reg(ref or, _)) => {
+                                result.push((0x8u16 << 12) | ((or.number() as u16) << 8) | ((nr.number() as u16) << 8) | 0x0e);
+                                curr_opcode = None;
+                                temp_last_token = None;
+                            },
+                            None => {
+                                temp_last_token = Some(TokenRef::Reg(nr, nl));
+                            },
+                            _ => {
+                                return Err(Token::Reg(nr.clone(), nl));
+                            }
                         }
-                        result.push((0x8u16 << 12) | (((nr.number() as u16) & 0x000f) << 8) | 0x0e);
-                        curr_opcode = None;
-                        temp_last_token = None;
                     },
                     Some(&Mnemonic::Cls) => {
                         match last_token {
