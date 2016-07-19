@@ -2,6 +2,12 @@ use std::fs::File;
 use std::io::Bytes;
 
 
+const COMMENT_CHAR: char = ';';
+const NEWLINE_CHAR: char = '\n';
+const COMMA_CHAR: char = ',';
+const SPACE_CHAR: char = ' ';
+const TAB_CHAR: char = '\t';
+
 #[derive(Debug, Copy, Clone)]
 pub enum Mnemonic {
     Add, And, Call, Cls,
@@ -41,7 +47,7 @@ pub enum Token {
     ImmConst(u16, u32),
     F(u32), B(u32), K(u32),
     I(u32), St(u32), Dt(u32),
-    IVal(u32),
+    IVal(u32), Comment(u32),
 }
 
 pub struct Stream {
@@ -71,14 +77,30 @@ impl Stream {
                     if Stream::is_separator(b) {
                         if buffer.len() > 0 {
                             let tt = Stream::create_token(buffer, self.line);
-                            if (b as char) == '\n' {
+                            if (b as char) == NEWLINE_CHAR {
                                 self.line += 1;
                             }
                             return tt;
                         }
-                        if (b as char) == '\n' {
+                        if (b as char) == NEWLINE_CHAR {
                             self.line += 1;
                         }
+					} else if (b as char) == COMMENT_CHAR {
+						loop {
+							let bs = self.input.next().map_or(None, |bm| match bm {
+								Ok(b) => Some(b),
+								_ => None
+							});
+							match bs {
+								Some(b) => {
+									if (b as char) == NEWLINE_CHAR {
+										self.line += 1;
+										return Some(Token::Comment(self.line - 1));
+									}
+								},
+								None => { return Some(Token::Comment(self.line)); }
+							}
+						}
                     } else {
                         buffer.push(b);
                     }
@@ -168,7 +190,7 @@ impl Stream {
 
     fn is_separator(b: u8) -> bool {
         match b as char {
-            ','|' '|'\n' | '\t' => { true }
+            COMMA_CHAR | SPACE_CHAR | NEWLINE_CHAR | TAB_CHAR => { true }
             _ => { false }
         }
     }
@@ -751,6 +773,7 @@ pub fn code_gen(tokens: &Vec<Token>) -> Result<Vec<u16>, Token> {
                 }
                 last_token = temp_last_token;
             },
+			&Token::Comment(_) => {}
         }
     }
     Ok(result)
